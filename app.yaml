@@ -1,0 +1,39 @@
+# change application ID
+#application: training-conference-app
+application: yourappid
+version: 6
+runtime: go
+api_version: go1
+
+handlers:
+- url: /images
+  static_dir: images
+
+- url: /css
+  static_dir: css
+
+- url: /favicon.ico
+  static_files: images/favicon.ico
+  upload: images/favicon.ico
+
+- url: /userprofile
+  script: _go_app
+  login: required
+
+- url: /saveprofile
+  script: _go_app
+
+- url: /scheduleconference
+  script: _go_app
+  login: required
+
+- url: /developer
+  script: _go_app
+  login: admin
+
+- url: /reviewconferences
+  script: _go_app
+  login: admin
+
+- url: /.*
+  script: _go_app

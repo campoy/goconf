@@ -1,0 +1,39 @@
+{{define "base"}}
+
+<!DOCTYPE html>
+<html>
+<head><title>Conference Central</title>
+<link rel="stylesheet" type="text/css" href="css/mystyle.css">
+</head>
+<body>
+<center><img src="images/header_collage.gif" width="100%" class="headerimage"></center>
+<p class="topnav">
+  <span class="nav-item"><a href="/">Home</a></span>
+  <span class="nav-item"><a href="/listconferences">Upcoming Conferences</a></span>
+  <span class="nav-item"><a href="/scheduleconference">Create Conference</a></span>
+  <span class="nav-item"><a href="/venues">Venues</a></span>
+  <span class="nav-item"><a href="/userprofile">User Profile</a></span>
+  {{with .User}}
+    {{if .Admin}}
+      <span class="nav-item"><a href="/developer">Developer Page</a></span>
+    {{end}}
+    <span class="nav-item"><a href="{{$.LogoutURL}}">Log Out</a></p>
+  {{else}}
+  <span class="nav-item"><a href="{{.LoginURL}}">Sign In</a></p>
+  {{end}}
+
+<!--TODO
+<p class="announcement">
+{% if announcement %}
+{% announcement|e %}
+{% else %}
+
+{% endif %}
+</p>
+-->
+<hr>
+  {{exec .Base .Content .}}
+</body>
+</html>
+
+{{end}}

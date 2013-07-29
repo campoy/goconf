@@ -1,0 +1,27 @@
+{{define "home"}}
+
+<h1>Welcome to Conference Central</h1>
+<p>You can schedule conferences and register for conferences right here on this web site. 
+We have a range of venues for conferences in some of the nicest places in the world.</p>
+
+  <!-- Greetings and additional notes go here -->
+  {{with .User}}
+    <p>Welcome {{.Email}}</p>
+    {{if .Admin}}
+       <p>You are signed in as a developer, feel free to go to the <a href="/developer">Developer Page</a>.</p>
+    {{else}}
+       <p>You are not signed in as a developer.</p>
+    {{end}}
+    <p><a href="{{$.LogoutURL}}">Log Out</a></p>
+  {{else}}
+    <p>Please <a href="{{.LoginURL}}">Sign In</a></p>
+  {{end}}
+  
+
+  <!--  Print links to other pages -->
+  <p><a href="/scheduleconference">Schedule a conference</a></p>
+  <p><a href="/listconferences">List conferences</a></p>
+  <p><a href="/userprofile">Go to your user profile</a></p>
+  <p><a href="/venues">Browse our delightful venues</a></p>
+
+{{end}}
