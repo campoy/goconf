@@ -8,31 +8,25 @@ import (
 	"appengine"
 	"appengine/urlfetch"
 
-	"code.google.com/p/goauth2/oauth"
 	"code.google.com/p/google-api-go-client/calendar/v3"
+	"github.com/campoy/goconf/oauth2"
 )
 
-var calendarConfig = config(calendar.CalendarScope)
+var calCfg = config(calendar.CalendarScope)
 
 func init() {
-	http.HandleFunc("/calendarinfo",
-		func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, calendarConfig.AuthCodeURL("foo"), http.StatusFound)
-		},
-	)
-	http.Handle("/oauth2callback", handler(calendarInfoHandler))
+	handler := oauth2.HandlerFunc("calendar", handler(calendarInfoHandler), calCfg)
+	http.HandleFunc("/calendarinfo", handler)
 }
 
 func calendarInfoHandler(w io.Writer, r *http.Request) error {
 	ctx := appengine.NewContext(r)
-
-	t := &oauth.Transport{
-		Config:    calendarConfig,
-		Transport: &urlfetch.Transport{Context: ctx},
+	client, err := oauth2.Client(r, &urlfetch.Transport{Context: ctx}, calCfg)
+	if err != nil {
+		return nil
 	}
-	t.Exchange(r.FormValue("code"))
 
-	cal, err := calendar.New(t.Client())
+	cal, err := calendar.New(client)
 	if err != nil {
 		return fmt.Errorf("create calendar service: %v", err)
 	}
@@ -44,8 +38,6 @@ func calendarInfoHandler(w io.Writer, r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("get calendar events: %v", err)
 	}
-
-	ctx.Infof("%#v", evts)
 
 	return renderPage(ctx, w, "showcalendar", evts)
 }

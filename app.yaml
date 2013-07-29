@@ -1,6 +1,6 @@
 # change application ID
 #application: training-conference-app
-application: yourappid
+application: go-conf
 version: 6
 runtime: go
 api_version: go1

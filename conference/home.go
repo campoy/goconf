@@ -12,12 +12,20 @@ func init() {
 	http.Handle("/", handler(homeHandler))
 }
 
+type RedirectTo string
+
+func (r RedirectTo) Error() string { return string(r) }
+
 type handler func(io.Writer, *http.Request) error
 
 func (f handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	b := &bytes.Buffer{}
 	err := f(b, r)
 	if err != nil {
+		if red, ok := err.(RedirectTo); ok {
+			http.Redirect(w, r, string(red), http.StatusMovedPermanently)
+			return
+		}
 		appengine.NewContext(r).Errorf("request failed: %v", err)
 		http.Error(w, err.Error(), 500)
 		return

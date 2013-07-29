@@ -28,14 +28,14 @@ func execTemplate(t *template.Template, name string, data interface{}) (template
 }
 
 type User struct {
-	Email   string
-	IsAdmin bool
+	*user.User
+	Name string
 }
 
 type Page struct {
 	Base      *template.Template
 	Content   string
-	User      *user.User
+	User      *User
 	LogoutURL string
 	LoginURL  string
 	Data      interface{}
@@ -48,7 +48,7 @@ func newPage(ctx appengine.Context, name string, data interface{}) (p *Page, err
 		Data:    data,
 	}
 	if u := user.Current(ctx); u != nil {
-		p.User = u
+		p.User = &User{User: u}
 		p.LogoutURL, err = user.LogoutURL(ctx, "/")
 	} else {
 		p.LoginURL, err = user.LoginURL(ctx, "/")
