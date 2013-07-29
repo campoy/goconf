@@ -1,0 +1,22 @@
+{{define "showcalendar"}}
+
+<h1>Your calendar events</h1>
+
+{{with .User}}
+	<p>Logged in user is {{.User.Email}} </p>
+{{else}}
+	<p>Not logged in!</p>
+{{end}}
+
+{{range .Data.Items}}  
+   <h3>{{.Summary}}</h3>
+   <p>organized by {{.Organizer.Email}}</p> 
+   {{with .Start.DateTime}}
+      <p>scheduled for {{.}}</p>
+   {{end}}
+   {{with .Start.Date}}
+      <p>scheduled for {{.}}</p>
+   {{end}}
+{{end}}
+
+{{end}}
