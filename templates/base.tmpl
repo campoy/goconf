@@ -28,15 +28,10 @@
   <span class="nav-item"><a href="{{.LoginURL}}">Sign In</a></p>
   {{end}}
 
-<!--TODO
-<p class="announcement">
-{% if announcement %}
-{% announcement|e %}
-{% else %}
+{{with .Announcement}}
+<p class="announcement">{{.}}</p>
+{{end}}
 
-{% endif %}
-</p>
--->
 <hr>
   {{exec .Base .Content .}}
 </body>

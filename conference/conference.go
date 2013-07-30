@@ -92,6 +92,10 @@ func saveConfHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *use
 		}
 	}
 
+	ann := fmt.Sprintf("A new conference has just been scheduled! %s in %s. Don't wait; book now!",
+		conf.Name, conf.City)
+	SetLatestAnnouncement(ctx, ann)
+
 	red := fmt.Sprintf("/showtickets?conf_key_str=%v&conf_name=%v",
 		url.QueryEscape(k.Encode()),
 		url.QueryEscape(conf.Name))

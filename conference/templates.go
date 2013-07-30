@@ -40,31 +40,40 @@ type User struct {
 }
 
 type Page struct {
-	Base      *template.Template
-	Content   string
-	User      *User
-	LogoutURL string
-	LoginURL  string
-	Heading   string
-	Topics    []string
-	Cities    []string
-	Data      interface{}
+	Base         *template.Template
+	Content      string
+	User         *User
+	LogoutURL    string
+	LoginURL     string
+	Heading      string
+	Topics       []string
+	Cities       []string
+	Announcement string
+	Data         interface{}
 }
 
-func NewPage(ctx appengine.Context, name string, data interface{}) (p *Page, err error) {
-	p = &Page{
-		Base:    tmpl,
-		Content: name,
-		Data:    data,
-		Topics:  topicList,
-		Cities:  cityList,
+func NewPage(ctx appengine.Context, name string, data interface{}) (*Page, error) {
+	ann, err := GetLatestAnnouncement(ctx)
+	if err != nil {
+		ctx.Errorf("latest announcement: %v", err)
 	}
+
+	p := &Page{
+		Base:         tmpl,
+		Content:      name,
+		Data:         data,
+		Topics:       topicList,
+		Cities:       cityList,
+		Announcement: ann,
+	}
+
 	if u := user.Current(ctx); u != nil {
 		p.User = &User{User: u}
 		p.LogoutURL, err = user.LogoutURL(ctx, "/")
 	} else {
 		p.LoginURL, err = user.LoginURL(ctx, "/")
 	}
+
 	return p, err
 }
 
