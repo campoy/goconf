@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"appengine"
 	"appengine/datastore"
@@ -14,12 +13,6 @@ import (
 func init() {
 	http.Handle("/userprofile", handler(userProfileHandler))
 	http.Handle("/saveprofile", handler(saveProfileHandler))
-}
-
-type Conference struct {
-	Name      string
-	City      string
-	StartDate string
 }
 
 type UserProfile struct {
@@ -47,20 +40,17 @@ func userProfileHandler(w io.Writer, r *http.Request) error {
 		return fmt.Errorf("required login for userprofile")
 	}
 
-	data := struct {
-		User   UserProfile
-		Topics []string
-	}{Topics: topicList}
+	var data UserProfile
 
 	heading := "Edit your"
 
 	k := datastore.NewKey(ctx, "RegisteredUser", u.Email, 0, nil)
-	if err := datastore.Get(ctx, k, &data.User); err != nil {
+	if err := datastore.Get(ctx, k, &data); err != nil {
 		if err != datastore.ErrNoSuchEntity {
 			return fmt.Errorf("get userprofile: %v", err)
 		}
 		heading = "Create a "
-		data.User.MainEmail = u.Email
+		data.MainEmail = u.Email
 	}
 
 	p, err := NewPage(ctx, "userprofile", data)
@@ -86,7 +76,7 @@ func saveProfileHandler(w io.Writer, r *http.Request) error {
 		MainEmail:  u.Email,
 		Name:       r.FormValue("person_name"),
 		NotifEmail: r.FormValue("notification_email"),
-		Topics:     strings.Split(r.FormValue("topics"), " "),
+		Topics:     r.Form["topics"],
 	}
 
 	k := datastore.NewKey(ctx, "RegisteredUser", u.Email, 0, nil)

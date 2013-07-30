@@ -2,7 +2,7 @@
 
 <h1>{{.Heading}} User Profile</h1>
 
-{{with .Data.User.RegisteredConfs}}
+{{with .Data.RegisteredConfs}}
   <h3>You are registered to attend the following conferences:</h3>
   {{range .}}
     <p> {{.Name}} in {{.City}} on {{.StartDate}} </p>
@@ -10,15 +10,15 @@
   <hr>
 {{end}}
 
-{{with .Data.User}}
+{{with .Data}}
 <p><b>Your main email is: </b> {{.MainEmail}}</p> 
 <form action="/saveprofile" method="post">
   <p><b>What is your name?</b></p>
   <input type=text value="{{.Name}}" name="person_name" />
   <p><b>What conference topics are you interested in?</b></p>
   <select name="topics" multiple>
-    {{range $.Data.Topics}}
-      <option value="{{.}}" {{if $.Data.User.SelectedTopic .}} selected {{end}}>{{.}}</option>
+    {{range $.Topics}}
+      <option value="{{.}}" {{if $.Data.SelectedTopic .}} selected {{end}}>{{.}}</option>
     {{end}}
   </select>
   <p><b>What is your email for receiving notifications?</b></p>

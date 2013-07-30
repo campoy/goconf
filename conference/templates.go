@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"html/template"
 	"io"
+	"time"
 
 	"appengine"
 	"appengine/user"
@@ -16,8 +17,10 @@ import (
 var (
 	tmpl = template.Must(
 		template.New("base").
-			Funcs(template.FuncMap{"exec": execTemplate}).
-			ParseGlob("templates/*.tmpl"))
+			Funcs(template.FuncMap{
+			"exec": execTemplate,
+			"date": func(d time.Time) string { return d.Format("2006 Jan 2") },
+		}).ParseGlob("templates/*.tmpl"))
 )
 
 // execTemplate is a helper to execute a template and return the output as a
@@ -43,6 +46,8 @@ type Page struct {
 	LogoutURL string
 	LoginURL  string
 	Heading   string
+	Topics    []string
+	Cities    []string
 	Data      interface{}
 }
 
@@ -51,6 +56,8 @@ func NewPage(ctx appengine.Context, name string, data interface{}) (p *Page, err
 		Base:    tmpl,
 		Content: name,
 		Data:    data,
+		Topics:  topicList,
+		Cities:  cityList,
 	}
 	if u := user.Current(ctx); u != nil {
 		p.User = &User{User: u}
