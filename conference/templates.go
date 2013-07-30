@@ -42,10 +42,11 @@ type Page struct {
 	User      *User
 	LogoutURL string
 	LoginURL  string
+	Heading   string
 	Data      interface{}
 }
 
-func newPage(ctx appengine.Context, name string, data interface{}) (p *Page, err error) {
+func NewPage(ctx appengine.Context, name string, data interface{}) (p *Page, err error) {
 	p = &Page{
 		Base:    tmpl,
 		Content: name,
@@ -60,10 +61,6 @@ func newPage(ctx appengine.Context, name string, data interface{}) (p *Page, err
 	return p, err
 }
 
-func renderPage(ctx appengine.Context, w io.Writer, name string, data interface{}) error {
-	p, err := newPage(ctx, name, data)
-	if err != nil {
-		return err
-	}
+func (p *Page) Render(w io.Writer) error {
 	return tmpl.Execute(w, p)
 }

@@ -6,6 +6,7 @@ package conference
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -15,6 +16,21 @@ import (
 func init() {
 	http.Handle("/", handler(homeHandler))
 }
+
+var (
+	topicList = []string{
+		"Medical Innovations",
+		"Programming Languages",
+		"Web Technologies",
+		"Movie Making",
+	}
+	cityList = []string{
+		"London",
+		"Chicago",
+		"San Francisco",
+		"Paris",
+	}
+)
 
 type RedirectTo string
 
@@ -39,5 +55,9 @@ func (f handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func homeHandler(w io.Writer, r *http.Request) error {
 	ctx := appengine.NewContext(r)
-	return renderPage(ctx, w, "home", nil)
+	p, err := NewPage(ctx, "home", nil)
+	if err != nil {
+		fmt.Errorf("create home page: %v", err)
+	}
+	return p.Render(w)
 }

@@ -42,5 +42,9 @@ func calendarInfoHandler(w io.Writer, r *http.Request) error {
 		return fmt.Errorf("get calendar events: %v", err)
 	}
 
-	return renderPage(ctx, w, "showcalendar", evts)
+	p, err := NewPage(ctx, "showcalendar", evts)
+	if err != nil {
+		fmt.Errorf("create showcalendar page: %v", err)
+	}
+	return p.Render(w)
 }
