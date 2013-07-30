@@ -1,3 +1,7 @@
+// Copyright 2013 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package conference
 
 import (
@@ -11,16 +15,18 @@ import (
 )
 
 func init() {
-	http.Handle("/userprofile", handler(userProfileHandler))
-	http.Handle("/saveprofile", handler(saveProfileHandler))
+	http.Handle("/userprofile", authHandler(userProfileHandler))
+	http.Handle("/saveprofile", authHandler(saveProfileHandler))
 }
 
+const UserKind = "RegisteredUser"
+
 type UserProfile struct {
-	RegisteredConfs []Conference
-	Name            string
-	Topics          []string
-	MainEmail       string
-	NotifEmail      string
+	Name       string
+	Topics     []string
+	MainEmail  string
+	NotifEmail string
+	Tickets    []Ticket
 }
 
 func (u UserProfile) SelectedTopic(topic string) bool {
@@ -32,19 +38,12 @@ func (u UserProfile) SelectedTopic(topic string) bool {
 	return false
 }
 
-func userProfileHandler(w io.Writer, r *http.Request) error {
-	ctx := appengine.NewContext(r)
-
-	u := user.Current(ctx)
-	if u == nil {
-		return fmt.Errorf("required login for userprofile")
-	}
-
+func userProfileHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *user.User) error {
 	var data UserProfile
 
 	heading := "Edit your"
 
-	k := datastore.NewKey(ctx, "RegisteredUser", u.Email, 0, nil)
+	k := datastore.NewKey(ctx, UserKind, u.Email, 0, nil)
 	if err := datastore.Get(ctx, k, &data); err != nil {
 		if err != datastore.ErrNoSuchEntity {
 			return fmt.Errorf("get userprofile: %v", err)
@@ -61,17 +60,10 @@ func userProfileHandler(w io.Writer, r *http.Request) error {
 	return p.Render(w)
 }
 
-func saveProfileHandler(w io.Writer, r *http.Request) error {
+func saveProfileHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *user.User) error {
 	if r.Method != "POST" {
 		return RedirectTo("/userprofile")
 	}
-
-	ctx := appengine.NewContext(r)
-	u := user.Current(ctx)
-	if u == nil {
-		return fmt.Errorf("required login for userprofile")
-	}
-
 	up := UserProfile{
 		MainEmail:  u.Email,
 		Name:       r.FormValue("person_name"),
@@ -79,7 +71,7 @@ func saveProfileHandler(w io.Writer, r *http.Request) error {
 		Topics:     r.Form["topics"],
 	}
 
-	k := datastore.NewKey(ctx, "RegisteredUser", u.Email, 0, nil)
+	k := datastore.NewKey(ctx, UserKind, u.Email, 0, nil)
 	if _, err := datastore.Put(ctx, k, &up); err != nil {
 		return fmt.Errorf("save userprofile: %v", err)
 	}

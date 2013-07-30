@@ -1,9 +1,14 @@
+// Copyright 2013 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package conference
 
 import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -12,9 +17,11 @@ import (
 	"appengine/user"
 )
 
+const ConferenceKind = "Conference"
+
 func init() {
 	http.Handle("/scheduleconference", handler(scheduleConfHandler))
-	http.Handle("/saveconference", handler(saveConfHandler))
+	http.Handle("/saveconference", authHandler(saveConfHandler))
 }
 
 func scheduleConfHandler(w io.Writer, r *http.Request) error {
@@ -39,28 +46,7 @@ type Conference struct {
 	Key             string
 }
 
-type Ticket struct {
-	Number   int64
-	Status   TicketStatus
-	ConfName string
-	ConfKey  string
-	Owner    string
-}
-
-type TicketStatus string
-
-const (
-	TicketAvailable TicketStatus = "available"
-	TicketSoldOut   TicketStatus = "soldout"
-)
-
-func saveConfHandler(w io.Writer, r *http.Request) error {
-	ctx := appengine.NewContext(r)
-	u := user.Current(ctx)
-	if u == nil {
-		return fmt.Errorf("required login for saveconf")
-	}
-
+func saveConfHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *user.User) error {
 	nAtt, err := strconv.ParseInt(r.FormValue("max_attendees"), 10, 32)
 	if err != nil {
 		return fmt.Errorf("bad max_attendees value: %q", r.FormValue("max_attendees"))
@@ -86,31 +72,28 @@ func saveConfHandler(w io.Writer, r *http.Request) error {
 		Organizer:       u.Email,
 	}
 
-	k := datastore.NewKey(ctx, "Conference", "", 0, nil)
+	k := datastore.NewKey(ctx, ConferenceKind, "", 0, nil)
 	k, err = datastore.Put(ctx, k, &conf)
 	if err != nil {
 		return fmt.Errorf("save conference: %v", err)
 	}
-	conf.Key = k.Encode()
-	_, err = datastore.Put(ctx, k, &conf)
-	if err != nil {
-		return fmt.Errorf("save conference with key: %v", err)
-	}
-	/*
-		for i := 0; i < nAtt; i++ {
-			ticket := Ticket{
-				TicketNumber:   int64(i),
-				Status:         TicketAvailable,
-				ConferenceName: confName,
-				ConferenceKey:  k.Encode(),
-			}
-			tk := datastore.NewKey(ctx, "Ticket", "", 0, k)
-			_, err := datastore.Put(ctx, tk)
-			if err != nil {
-				return fmt.Errorf("save ticket %v for conference %v: %v", i, confName, err)
-			}
-		}
-	*/
 
-	return RedirectTo("/listconferences")
+	for i := int64(0); i < nAtt; i++ {
+		ticket := Ticket{
+			Number:   int64(i),
+			Status:   TicketAvailable,
+			ConfName: confName,
+			ConfKey:  k.Encode(),
+		}
+		tk := datastore.NewKey(ctx, TicketKind, "", 0, k)
+		tk, err := datastore.Put(ctx, tk, &ticket)
+		if err != nil {
+			return fmt.Errorf("save ticket %v for conference %v: %v", i, confName, err)
+		}
+	}
+
+	red := fmt.Sprintf("/showtickets?conf_key_str=%v&conf_name=%v",
+		url.QueryEscape(k.Encode()),
+		url.QueryEscape(conf.Name))
+	return RedirectTo(red)
 }

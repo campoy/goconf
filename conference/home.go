@@ -5,7 +5,6 @@
 package conference
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,42 +14,6 @@ import (
 
 func init() {
 	http.Handle("/", handler(homeHandler))
-}
-
-var (
-	topicList = []string{
-		"Medical Innovations",
-		"Programming Languages",
-		"Web Technologies",
-		"Movie Making",
-	}
-	cityList = []string{
-		"London",
-		"Chicago",
-		"San Francisco",
-		"Paris",
-	}
-)
-
-type RedirectTo string
-
-func (r RedirectTo) Error() string { return string(r) }
-
-type handler func(io.Writer, *http.Request) error
-
-func (f handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	b := &bytes.Buffer{}
-	err := f(b, r)
-	if err != nil {
-		if red, ok := err.(RedirectTo); ok {
-			http.Redirect(w, r, string(red), http.StatusMovedPermanently)
-			return
-		}
-		appengine.NewContext(r).Errorf("request failed: %v", err)
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	w.Write(b.Bytes())
 }
 
 func homeHandler(w io.Writer, r *http.Request) error {

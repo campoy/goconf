@@ -1,3 +1,9 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style
+  license that can be found in the LICENSE file.
+-->
+
 {{define "listconfs"}}
 
 <h1>List Conferences</h1>
@@ -14,19 +20,17 @@
         <th>End Date</th>
         <th>Max Attendees</th>
         <th>Buy ticket</th>
-        <th>Conf Key</th>
     </tr>
     {{range .Conferences}}  
-      <tr><td>{{ .Name }}</td>
-          <td>{{ .Description }}</td>
-          <td>{{ .Organizer }}</td>
-          <td>{{ .Topic }}</td>
-          <td>{{ .City }}</td>
-          <td>{{ date .StartDate }}</td>
-          <td>{{ date .EndDate }}</td>
-          <td>{{ .MaxAttendees }}</td>
+      <tr><td>{{.Name}}</td>
+          <td>{{.Description}}</td>
+          <td>{{.Organizer}}</td>
+          <td>{{.Topic}}</td>
+          <td>{{.City}}</td>
+          <td>{{date .StartDate}}</td>
+          <td>{{date .EndDate}}</td>
+          <td>{{.MaxAttendees}}</td>
            <td><a href="/showtickets?conf_name={{.Name}}&conf_key_str={{.Key}}">Buy Ticket</a></td>
-          <td>{{ .Key }}</td>
        </tr>
     {{end}}
   </table><br/><br/>

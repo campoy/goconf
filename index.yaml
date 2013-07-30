@@ -14,3 +14,15 @@ indexes:
   properties:
   - name: City
   - name: Name
+
+- kind: Ticket
+  properties:
+  - name: ConfKey
+  - name: Status
+  - name: Number
+
+- kind: Ticket
+  ancestor: yes
+  properties:
+  - name: Status
+  - name: Number
