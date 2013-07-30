@@ -1,0 +1,30 @@
+{{define "userprofile"}}
+
+<h1>{{.Heading}} User Profile</h1>
+
+{{with .Data.User.RegisteredConfs}}
+  <h3>You are registered to attend the following conferences:</h3>
+  {{range .}}
+    <p> {{.Name}} in {{.City}} on {{.StartDate}} </p>
+  {{end}}
+  <hr>
+{{end}}
+
+{{with .Data.User}}
+<p><b>Your main email is: </b> {{.MainEmail}}</p> 
+<form action="/saveprofile" method="post">
+  <p><b>What is your name?</b></p>
+  <input type=text value="{{.Name}}" name="person_name" />
+  <p><b>What conference topics are you interested in?</b></p>
+  <select name="topics" multiple>
+    {{range $.Data.Topics}}
+      <option value="{{.}}" {{if $.Data.User.SelectedTopic .}} selected {{end}}>{{.}}</option>
+    {{end}}
+  </select>
+  <p><b>What is your email for receiving notifications?</b></p>
+  <input type=text value="{{.NotifEmail}}" name="notification_email" /></p>
+  <input type=submit value="Update my user profile" id=updateprofile />
+</form>
+{{end}}
+
+{{end}}
