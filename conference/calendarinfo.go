@@ -9,21 +9,20 @@ import (
 	"appengine/urlfetch"
 
 	"code.google.com/p/google-api-go-client/calendar/v3"
-	"github.com/campoy/goconf/oauth2"
+	"github.com/campoy/oauth2util"
 )
 
 var calCfg = config(calendar.CalendarScope)
 
 func init() {
-	handler := oauth2.HandlerFunc("calendar", handler(calendarInfoHandler), calCfg)
-	http.HandleFunc("/calendarinfo", handler)
+	oauth2util.Handle("/calendarinfo", handler(calendarInfoHandler), calCfg)
 }
 
 func calendarInfoHandler(w io.Writer, r *http.Request) error {
 	ctx := appengine.NewContext(r)
-	client, err := oauth2.Client(r, &urlfetch.Transport{Context: ctx}, calCfg)
+	client, err := oauth2util.Client(r, &urlfetch.Transport{Context: ctx}, calCfg)
 	if err != nil {
-		return nil
+		return fmt.Errorf("oauth2 client: %v", err)
 	}
 
 	cal, err := calendar.New(client)
