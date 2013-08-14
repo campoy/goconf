@@ -19,18 +19,18 @@
   <span class="nav-item"><a href="/scheduleconference">Create Conference</a></span>
   <span class="nav-item"><a href="/venues">Venues</a></span>
   <span class="nav-item"><a href="/userprofile">User Profile</a></span>
+
   {{with .User}}
     {{if .Admin}}
       <span class="nav-item"><a href="/developer">Developer Page</a></span>
     {{end}}
     <span class="nav-item"><a href="{{$.LogoutURL}}">Log Out</a></p>
+    {{with $.Announcement}}
+    <p class="announcement">{{.}}</p>
+    {{end}}
   {{else}}
   <span class="nav-item"><a href="{{.LoginURL}}">Sign In</a></p>
   {{end}}
-
-{{with .Announcement}}
-<p class="announcement">{{.}}</p>
-{{end}}
 
 <hr>
   {{exec .Base .Content .}}

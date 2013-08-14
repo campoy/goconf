@@ -1,3 +1,7 @@
+// Copyright 2013 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package conference
 
 import (
@@ -20,7 +24,15 @@ type Announcement struct {
 }
 
 func SetLatestAnnouncement(ctx appengine.Context, value string) error {
-	setAnnMemcache(ctx, value)
+	item := &memcache.Item{
+		Key:        latestAnnouncementKey,
+		Value:      []byte(value),
+		Expiration: 1 * time.Hour,
+	}
+	if err := memcache.Set(ctx, item); err != nil {
+		ctx.Errorf("memcache set: %v", err)
+	}
+
 	ann := Announcement{
 		Message: value,
 		Time:    time.Now(),
@@ -35,32 +47,21 @@ func GetLatestAnnouncement(ctx appengine.Context) (string, error) {
 	if err == nil {
 		return string(item.Value), nil
 	}
-	ctx.Infof("memcache miss: %v", err)
 
 	var ann Announcement
 	_, err = datastore.NewQuery(announcementKind).
-		Order("-Time").
-		Limit(1).
+		Order("-Time"). // Order from newer to older
+		Limit(1).       // Get only one result at most
 		Run(ctx).
 		Next(&ann)
+	if err == datastore.Done {
+		// There's no announcement
+		return "", nil
+	}
 	if err != nil {
-		// There's no announcements
-		if err == datastore.Done {
-			return "", nil
-		}
 		return "", fmt.Errorf("get last announcement from datastore: %v", err)
 	}
+
 	SetLatestAnnouncement(ctx, ann.Message)
 	return ann.Message, nil
-}
-
-func setAnnMemcache(ctx appengine.Context, value string) {
-	item := &memcache.Item{
-		Key:        latestAnnouncementKey,
-		Value:      []byte(value),
-		Expiration: 1 * time.Hour,
-	}
-	if err := memcache.Set(ctx, item); err != nil {
-		ctx.Infof("memcache set: %v", err)
-	}
 }

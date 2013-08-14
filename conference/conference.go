@@ -10,10 +10,12 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/taskqueue"
 	"appengine/user"
 )
 
@@ -46,21 +48,26 @@ type Conference struct {
 	Key             string
 }
 
-func saveConfHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *user.User) error {
+func ConfFromRequest(r *http.Request) (*Conference, error) {
 	nAtt, err := strconv.ParseInt(r.FormValue("max_attendees"), 10, 32)
 	if err != nil {
-		return fmt.Errorf("bad max_attendees value: %q", r.FormValue("max_attendees"))
+		return nil, fmt.Errorf("bad max_attendees value: %q", r.FormValue("max_attendees"))
 	}
 	start, err := time.Parse("2006-01-02", r.FormValue("start_date"))
 	if err != nil {
-		return fmt.Errorf("bad start_date value: %q", r.FormValue("start_date"))
+		return nil, fmt.Errorf("bad start_date value: %q", r.FormValue("start_date"))
 	}
 	end, err := time.Parse("2006-01-02", r.FormValue("end_date"))
 	if err != nil {
-		return fmt.Errorf("bad end_date value: %q", r.FormValue("end_date"))
+		return nil, fmt.Errorf("bad end_date value: %q", r.FormValue("end_date"))
 	}
 	confName := r.FormValue("conf_name")
-	conf := Conference{
+	email := ""
+	if u := user.Current(appengine.NewContext(r)); u != nil {
+		email = u.Email
+	}
+
+	return &Conference{
 		Name:            confName,
 		Description:     r.FormValue("conf_desc"),
 		City:            r.FormValue("city"),
@@ -69,35 +76,60 @@ func saveConfHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *use
 		NumTixAvailable: nAtt,
 		StartDate:       start,
 		EndDate:         end,
-		Organizer:       u.Email,
+		Organizer:       email,
+	}, nil
+}
+
+func saveConfHandler(w io.Writer, r *http.Request, ctx appengine.Context, u *user.User) error {
+	conf, err := ConfFromRequest(r)
+	if err != nil {
+		return fmt.Errorf("conf from request: %v", err)
 	}
 
 	k := datastore.NewKey(ctx, ConferenceKind, "", 0, nil)
-	k, err = datastore.Put(ctx, k, &conf)
+	k, err = datastore.Put(ctx, k, conf)
 	if err != nil {
 		return fmt.Errorf("save conference: %v", err)
 	}
 
-	for i := int64(0); i < nAtt; i++ {
-		ticket := Ticket{
-			Number:   int64(i),
-			Status:   TicketAvailable,
-			ConfName: confName,
-			ConfKey:  k.Encode(),
-		}
-		tk := datastore.NewKey(ctx, TicketKind, "", 0, k)
-		tk, err := datastore.Put(ctx, tk, &ticket)
+	// Create tickets for the conference.
+	errc := make(chan error, int(conf.MaxAttendees))
+	var wg sync.WaitGroup
+	wg.Add(int(conf.MaxAttendees))
+	for i := int64(0); i < conf.MaxAttendees; i++ {
+		go func(ticketNum int) {
+			defer wg.Done()
+			ticket := Ticket{
+				Number:   ticketNum,
+				Status:   TicketAvailable,
+				ConfName: conf.Name,
+				ConfKey:  k.Encode(),
+			}
+			tk := datastore.NewKey(ctx, TicketKind, "", 0, k)
+			_, err := datastore.Put(ctx, tk, &ticket)
+			if err != nil {
+				errc <- fmt.Errorf("save ticket %v for conference %v: %v", ticketNum, conf.Name, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	for err := range errc {
 		if err != nil {
-			return fmt.Errorf("save ticket %v for conference %v: %v", i, confName, err)
+			return err
 		}
 	}
 
-	ann := fmt.Sprintf("A new conference has just been scheduled! %s in %s. Don't wait; book now!",
-		conf.Name, conf.City)
-	SetLatestAnnouncement(ctx, ann)
+	task := taskqueue.NewPOSTTask(
+		"/processconference",
+		url.Values{"conf_key": []string{k.Encode()}},
+	)
+	_, err = taskqueue.Add(ctx, task, "")
+	if err != nil {
+		return fmt.Errorf("add process conf task: %v", err)
+	}
 
-	red := fmt.Sprintf("/showtickets?conf_key_str=%v&conf_name=%v",
-		url.QueryEscape(k.Encode()),
-		url.QueryEscape(conf.Name))
-	return RedirectTo(red)
+	return RedirectTo(
+		fmt.Sprintf("/showtickets?conf_key_str=%v&conf_name=%v",
+			url.QueryEscape(k.Encode()),
+			url.QueryEscape(conf.Name)))
 }
