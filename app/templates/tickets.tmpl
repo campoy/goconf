@@ -1,0 +1,22 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "tickets"}}
+
+<h1>Show Tickets</h1>
+{{with .Data}}
+	<p>Conference name is {{ .ConfName }} </p>
+
+	{{range .Tickets}}
+		<p>Ticket number {{.Number}} is {{ .State }}
+			<a href="/buyticket?ticket_key_str={{ .ID }}"> [Purchase] </a>
+		</p>
+	{{else}}
+		<p>This conference is sold out</p>
+	{{end}}
+{{end}}
+
+{{end}}

@@ -1,0 +1,28 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "showcalendar"}}
+
+<h1>Your calendar</h1>
+
+{{with .User}}
+	<p>Logged in user is {{.User.Email}} </p>
+{{else}}
+	<p>Not logged in!</p>
+{{end}}
+
+{{range .Data.Items}}
+	<h3>{{.Summary}}</h3>
+	<p>organized by {{.Organizer.Email}}</p>
+	{{with .Start.DateTime}}
+		<p>scheduled for {{.}}</p>
+	{{end}}
+	{{with .Start.Date}}
+		<p>scheduled for {{.}}</p>
+	{{end}}
+{{end}}
+
+{{end}}

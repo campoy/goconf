@@ -1,0 +1,21 @@
+body {margin:20px; padding:20px; border:1px; border-style:solid; border-color:#444444;
+font-family:Verdana, Arial, Helvetica, sans-serif;}
+
+h1 {color:#1155dd}
+
+.topnav{
+  border:2px solid #3366CC;border-radius:10px;padding:10px;
+  background:url(/images/menu_bg.gif) repeat-x 0 0px;
+  font-family:Verdana, Arial, Helvetica, sans-serif;
+  font-size:14px;
+}
+
+.nav-item { padding-right:50px;}
+
+.headerimage {
+	background-color:white;border:2px solid #FFFFFF;border-radius:25px;padding:5px;
+}
+
+.announcement { text-align:right; font-style:italic; padding:10px }
+
+

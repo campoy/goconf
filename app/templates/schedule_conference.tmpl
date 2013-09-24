@@ -1,0 +1,44 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "scheduleconf"}}
+
+<h1>Schedule a new conference</h1>
+<p>You are logged in as {{ .User.Email }} </p>
+<form action="/saveconference" method=post>
+	<p><b>What is the title of your conference?</b></p>
+	<input name="conf_name" size="100"/>
+
+	<p><b>What is the topic of your conference?</b></p>
+	<select name="topic">
+		{{range .Topics}}
+			<option value="{{.}}">{{.}}</option>
+		{{end}}
+	</select>
+
+	<p><b>Enter a summary of your conference.</b></p>
+	<textarea name="conf_desc" rows="6" cols="100">Who should attend? What will they get out of it?</textarea>
+
+	<p><b>Where would you like to hold your conference?</b></p>
+	<select name="city">
+		{{range .Cities}}
+			<option value="{{.}}">{{.}}</option>
+		{{end}}
+	</select>
+
+	<p><b>What is the maximum number of attendees?</b></p>
+	<input name="max_attendees" value="5" /><i>Must be an integer</i>
+
+	<p><b>What date does your conference start?</b></p>
+	<input name="start_date" type="date">
+
+	<p><b>What date does your conference end?</b></p>
+	<input name="end_date" type="date">
+
+	<input type=submit value="Schedule conference" id="scheduleconference"/></p>
+</form>
+
+{{end}}

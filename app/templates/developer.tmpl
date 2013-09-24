@@ -1,0 +1,44 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "developer"}}
+
+<h1>Developer page</h1>
+<H2>Welcome {{.User.Email}}</H2>
+
+<p>This page is for developers who are working on the application.</p>
+<p>This form lets you delete ALL entities of a given KIND</p>
+<form action="/developer" method="POST">
+	<p>Kind: <input value="Ticket" name="kind"></p>
+	<select name="deleteall">
+		<option value="no">NO, leave my entities alone!!!!</option>
+		<option value="yes">Delete all entities of this kind</option>
+	</select>
+	<input type="submit" value="submit" />
+</form>
+
+<hr>
+
+<h3>Publish an Announcement</h3>
+<p>This form lets you publish an announcement to appear at the top of
+every page in the site.</p>
+<form action="/developer" method="POST">
+	<p>Announcement:</p>
+	<textarea name="announcement" cols="80" rows="10">Your announcement goes here</textarea>
+	<p><input type="submit" value="submit" /></p>
+</form>
+
+<hr>
+
+<h3>Review Conferences</h3>
+<p>Check this button to list conferences that need to be reviewed</p>
+<form action="/reviewconferences" method="POST">
+	<p><input type="submit" value="Review New Conferences" name="reviewconference"/></p>
+</form>
+
+<hr>
+
+{{end}}

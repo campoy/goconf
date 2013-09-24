@@ -1,0 +1,40 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "listconfs"}}
+
+<h1>List Conferences</h1>
+{{range .Data}}
+<h3>{{.Title}}</h3>
+	<table cellpadding="5px" border="1">
+		<tr>
+			<th>Conference Title</th>
+			<th width="25%">Description</th>
+			<th>Organizer</th>
+			<th>Category</th>
+			<th>City</th>
+			<th>Start Date</th>
+			<th>End Date</th>
+			<th>Max Attendees</th>
+			<th>Buy ticket</th>
+		</tr>
+		{{range .Conferences}}
+			<tr>
+				<td>{{.Name}}</td>
+				<td>{{.Description}}</td>
+				<td>{{.Organizer}}</td>
+				<td>{{.Topic}}</td>
+				<td>{{.City}}</td>
+				<td>{{date .StartDate}}</td>
+				<td>{{date .EndDate}}</td>
+				<td>{{.MaxAttendees}}</td>
+				<td><a href="/showtickets?conf_id={{.ID}}">Buy Ticket</a></td>
+			</tr>
+		{{end}}
+	</table>
+{{end}}
+
+{{end}}
