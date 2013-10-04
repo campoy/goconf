@@ -1,0 +1,58 @@
+<!--
+  Copyright 2013 The Go Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style
+  license that can be found in the LICENSE file.
+-->
+
+{{define "reviewconfs"}}
+
+
+<h3>Review Conferences</h3>
+{{with .Data.Message}}
+	{{.}}
+{{else}}
+<p>Every new conference must be reviewed by an administrator.</p>
+<p>Review the conferences listed here. Check that the details are complete.
+Send email to the organizer to provide a personal touch, and to start the conversation about billing.
+When you have completed the preliminary approval, approve the conference.
+</p>
+
+<p>
+<table cellpadding="5px" border="1">
+  <tr><th>Conference Name</th>
+      <th>City</th>
+      <th>Organizer</th>
+      <th>Start Date</th>
+      <th>End Date</th>
+      <th>Max Attendees</th>
+      <th>Review and Approve</th>
+  </tr>
+
+  {{range .Data.Confs }}
+    <tr><td>{{ .Name }}</td>
+        <td>{{ .City }}</td>
+        <td>{{ .Organizer }}</td>
+        <td>{{ .StartDate }}</td>
+        <td>{{ .EndDate }}</td>
+        <td>{{ .MaxAttendees }}</td>
+        <td><form action="/reviewconferences" method="POST">
+            <input type="hidden" name="task_name" value="{{ .Key }}">
+            <input type="hidden" name="conf_name" value="{{ .Name }}">
+            <input type="submit" name="conf" value="Review completed" />
+            </form>
+        </td>
+     </tr>
+  {{end}}
+
+</table><br/><br/>
+</p>
+
+<hr>
+<p>Check this button to list conferences that need to be reviewed</p>
+<form action="/reviewconferences" method="POST">
+  <p><input type="submit" value="Review New Conferences" name="reviewconference"/></p>
+</form>
+
+{{end}}
+
+{{end}}

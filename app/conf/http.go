@@ -34,6 +34,7 @@ func init() {
 	http.Handle("/saveconference", authHandler(saveConfHandler))
 	http.Handle("/listconferences", authHandler(listConfsHandler))
 	http.Handle("/notifyinterestedusers", handler(notifyInterestedUsersHandler))
+	http.Handle("/reviewconferences", handler(reviewConfsHandler))
 
 	// admin page
 	http.Handle("/developer", handler(developerHandler))
@@ -198,6 +199,58 @@ func notifyInterestedUsersHandler(w io.Writer, r *http.Request) error {
 	}
 
 	return conf.MailNotifications(ctx, emailSender, subject.String(), body.String())
+}
+
+func leaseConfs(ctx appengine.Context) (ts []*taskqueue.Task, err error) {
+	for i, t := 0, 1; i < 3; i, t = i+1, 2*t {
+		ts, err = taskqueue.Lease(ctx, 4, "review-conference-queue", 10)
+		if err == nil {
+			return
+		}
+		ctx.Errorf("lease tasks: %v", err)
+		time.Sleep(time.Duration(t) * time.Second)
+	}
+	return
+}
+
+func reviewConfsHandler(w io.Writer, r *http.Request) error {
+	data := struct {
+		Message string
+		Confs   map[string]*conf.Conference
+	}{Confs: make(map[string]*conf.Conference)}
+
+	ctx := appengine.NewContext(r)
+	if taskName := r.FormValue("task_name"); len(taskName) > 0 {
+		err := &taskqueue.Task{Name: taskName}
+		if err != nil {
+			data.Message = fmt.Sprintf("Conference %v was not reviewed and approved. "+
+				"Perhaps someone else already approved it?", r.FormValue("conf_name"))
+		} else {
+			data.Message = fmt.Sprintf("Conference %v has been reviewed and approved.",
+				r.FormValue("conf_name"))
+		}
+	}
+	if len(r.FormValue("reviewconference")) > 0 {
+		ts, err := leaseConfs(ctx)
+		if err != nil {
+			return fmt.Errorf("retrieve conferences to review: %v", err)
+		}
+		for _, t := range ts {
+			id := string(t.Payload)
+			c, err := conf.LoadConference(ctx, id)
+			if err != nil {
+				ctx.Errorf("load conf %v to review: %v", id, err)
+				continue
+			}
+			data.Confs[t.Name] = c
+		}
+	}
+
+	p, err := NewPage(ctx, "reviewconfs", data)
+	if err != nil {
+		return fmt.Errorf("create reviewconfs page: %v", err)
+	}
+	return p.Render(w)
 }
 
 // admin page
