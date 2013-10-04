@@ -36,7 +36,7 @@ When you have completed the preliminary approval, approve the conference.
         <td>{{ .EndDate }}</td>
         <td>{{ .MaxAttendees }}</td>
         <td><form action="/reviewconferences" method="POST">
-            <input type="hidden" name="task_name" value="{{ .Key }}">
+            <input type="hidden" name="task_name" value="{{ .ID }}">
             <input type="hidden" name="conf_name" value="{{ .Name }}">
             <input type="submit" name="conf" value="Review completed" />
             </form>
