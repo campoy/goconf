@@ -15,6 +15,8 @@ advantage of the following APIs:
 
 - datastore: for permanent storage of data
 - memcache: for temporary storage of announcements
-- taskqueue: to perform out-of-request tasks in a robust way
+- taskqueue:
+  - push queues to perform out-of-request tasks in a robust way
+  - pull queues for the review process of conferences
 - backends: executing longer tasks as notifying users by email
 - mail: to notify users interested in a given topic
