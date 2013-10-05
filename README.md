@@ -19,6 +19,9 @@ advantage of the following APIs:
 - backends: executing longer tasks as notifying users by email
 - mail: to notify users interested in a given topic
 
+The application also accesses the user's calendar events on Google Calendar using oauth2 delegation.
+The code for this has been written with the intention of being reusable, in the `github.com/campoy/goconf/pkg/auth` package.
+
 Installation
 ------------
 
